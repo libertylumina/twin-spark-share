@@ -2,16 +2,19 @@ import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack
 import { useQuery } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Search, X } from "lucide-react";
+import { Search, X, Rows3, LayoutGrid } from "lucide-react";
 
 import { formatDateParts, publishedArticlesQuery } from "@/lib/articles";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const homeSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
+  view: fallback(z.enum(["lista", "grade"]), "lista").default("lista"),
 });
 
-const searchDefaults = { q: "" };
+const searchDefaults = { q: "", view: "lista" as const };
+
 
 export const Route = createFileRoute("/")({
   validateSearch: zodValidator(homeSearchSchema),
