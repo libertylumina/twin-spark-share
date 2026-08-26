@@ -70,26 +70,59 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
+      <section className={cn("mx-auto px-4 sm:px-6 py-10", isGrid ? "max-w-7xl" : "max-w-4xl")}>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar bula por título, resumo ou autor"
-              value={q}
-              onChange={(e) => navigate({ search: (prev) => ({ ...prev, q: e.target.value }) })}
-              className="h-12 rounded-xl pl-10 pr-10 text-base"
-            />
-            {q && (
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar bula por título, resumo ou autor"
+                value={q}
+                onChange={(e) => navigate({ search: (prev) => ({ ...prev, q: e.target.value }) })}
+                className="h-12 rounded-xl pl-10 pr-10 text-base"
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => navigate({ search: (prev) => ({ ...prev, q: "" }) })}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-secondary p-1">
               <button
                 type="button"
-                onClick={() => navigate({ search: (prev) => ({ ...prev, q: "" }) })}
-                aria-label="Limpar busca"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Visualização em lista"
+                aria-pressed={!isGrid}
+                onClick={() => navigate({ search: (prev) => ({ ...prev, view: "lista" as const }) })}
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-lg transition-colors",
+                  !isGrid
+                    ? "bg-card text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
-                <X className="h-4 w-4" />
+                <Rows3 className="h-4 w-4" />
               </button>
-            )}
+              <button
+                type="button"
+                aria-label="Visualização em 4 colunas"
+                aria-pressed={isGrid}
+                onClick={() => navigate({ search: (prev) => ({ ...prev, view: "grade" as const }) })}
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-lg transition-colors",
+                  isGrid
+                    ? "bg-card text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
