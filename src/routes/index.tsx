@@ -1,24 +1,171 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { Search, X } from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { formatDateParts, publishedArticlesQuery } from "@/lib/articles";
+import { Input } from "@/components/ui/input";
+
+const homeSearchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+});
+
+const searchDefaults = { q: "" };
+
 export const Route = createFileRoute("/")({
+  validateSearch: zodValidator(homeSearchSchema),
+  search: {
+    middlewares: [stripSearchParams(searchDefaults)],
+  },
+  head: () => ({
+    meta: [
+      { title: "Central de Bulas — Atualização de documentos" },
+      {
+        name: "description",
+        content:
+          "Aqui publicamos todas as bulas dos nossos produtos. Fique atento a alterações e correções.",
+      },
+      { property: "og:title", content: "Central de Bulas — Atualização de documentos" },
+      {
+        property: "og:description",
+        content: "Aqui publicamos todas as bulas dos nossos produtos. Fique atento a alterações e correções.",
+      },
+    ],
+    links: [],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const { data: articles, isLoading, error } = useQuery(publishedArticlesQuery);
+  const { q } = Route.useSearch();
+  const navigate = useNavigate({ from: "/" });
+
+  const filteredArticles = (articles ?? []).filter((article) => {
+    return (
+      normalize(article.title).includes(normalize(q)) ||
+      normalize(article.excerpt).includes(normalize(q)) ||
+      normalize(article.author_name).includes(normalize(q))
+    );
+  });
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div>
+      <section className="border-b border-border bg-surface">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
+            Atualização de documentos
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold text-foreground sm:text-5xl">
+            Central de Bulas
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+            Aqui publicamos todas as bulas dos nossos produtos. Fique atento a alterações e correções.
+          </p>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar bula por título, resumo ou autor"
+              value={q}
+              onChange={(e) => navigate({ search: (prev) => ({ ...prev, q: e.target.value }) })}
+              className="h-12 rounded-xl pl-10 pr-10 text-base"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={() => navigate({ search: (prev) => ({ ...prev, q: "" }) })}
+                aria-label="Limpar busca"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 text-sm text-muted-foreground">
+          {isLoading
+            ? "Carregando..."
+            : `${filteredArticles.length} ${filteredArticles.length === 1 ? "resultado" : "resultados"}`}
+        </div>
+
+        <div className="mt-6">
+          {isLoading && <p className="text-sm text-muted-foreground">Carregando atualizações…</p>}
+          {error && (
+            <p className="text-sm text-destructive">Não foi possível carregar as atualizações.</p>
+          )}
+          {!isLoading && !error && filteredArticles.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma publicação encontrada com os filtros selecionados.
+            </p>
+          )}
+
+          <ul className="flex flex-col gap-8">
+            {filteredArticles.map((article) => {
+              const date = formatDateParts(article.published_at);
+              return (
+                <li
+                  key={article.id}
+                  className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-soft sm:flex-row sm:gap-6"
+                >
+                  <div className="flex w-16 shrink-0 flex-col items-center rounded-lg bg-secondary px-2 py-3 text-center">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {date.month}
+                    </span>
+                    <span className="text-2xl font-semibold leading-tight text-foreground">
+                      {date.day}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">{date.year}</span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="text-xl font-semibold leading-snug">
+                      <Link
+                        to="/bulas/$slug"
+                        params={{ slug: article.slug }}
+                        className="transition-colors hover:text-brand"
+                      >
+                        {article.title}
+                      </Link>
+                    </h2>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      {article.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-accent px-2 py-0.5 text-accent-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                      {article.author_name && <span>por {article.author_name}</span>}
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                      {article.excerpt}
+                    </p>
+                    <Link
+                      to="/bulas/$slug"
+                      params={{ slug: article.slug }}
+                      className="mt-4 inline-flex text-sm font-medium text-brand hover:underline"
+                    >
+                      Continue lendo →
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
     </div>
   );
+}
+
+function normalize(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }

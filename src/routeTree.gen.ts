@@ -10,33 +10,111 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminIdRouteImport } from './routes/admin.$id'
+import { Route as ArtigoSlugRouteImport } from './routes/artigo.$slug'
+import { Route as BulasSlugRouteImport } from './routes/bulas.$slug'
+import { Route as ApiPublicRssDotxmlRouteImport } from './routes/api/public/rss[.]xml'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIdRoute = AdminIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ArtigoSlugRoute = ArtigoSlugRouteImport.update({
+  id: '/artigo/$slug',
+  path: '/artigo/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BulasSlugRoute = BulasSlugRouteImport.update({
+  id: '/bulas/$slug',
+  path: '/bulas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRssDotxmlRoute = ApiPublicRssDotxmlRouteImport.update({
+  id: '/api/public/rss.xml',
+  path: '/api/public/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/$id': typeof AdminIdRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/bulas/$slug': typeof BulasSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/api/public/rss.xml': typeof ApiPublicRssDotxmlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/$id': typeof AdminIdRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/bulas/$slug': typeof BulasSlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/api/public/rss.xml': typeof ApiPublicRssDotxmlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/$id': typeof AdminIdRoute
+  '/artigo/$slug': typeof ArtigoSlugRoute
+  '/bulas/$slug': typeof BulasSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/api/public/rss.xml': typeof ApiPublicRssDotxmlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/admin/$id'
+    | '/artigo/$slug'
+    | '/bulas/$slug'
+    | '/admin/'
+    | '/api/public/rss.xml'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin/$id'
+    | '/artigo/$slug'
+    | '/bulas/$slug'
+    | '/admin'
+    | '/api/public/rss.xml'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/admin/$id'
+    | '/artigo/$slug'
+    | '/bulas/$slug'
+    | '/admin/'
+    | '/api/public/rss.xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  ArtigoSlugRoute: typeof ArtigoSlugRoute
+  BulasSlugRoute: typeof BulasSlugRoute
+  ApiPublicRssDotxmlRoute: typeof ApiPublicRssDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +126,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/$id': {
+      id: '/admin/$id'
+      path: '/$id'
+      fullPath: '/admin/$id'
+      preLoaderRoute: typeof AdminIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/artigo/$slug': {
+      id: '/artigo/$slug'
+      path: '/artigo/$slug'
+      fullPath: '/artigo/$slug'
+      preLoaderRoute: typeof ArtigoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bulas/$slug': {
+      id: '/bulas/$slug'
+      path: '/bulas/$slug'
+      fullPath: '/bulas/$slug'
+      preLoaderRoute: typeof BulasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/rss.xml': {
+      id: '/api/public/rss.xml'
+      path: '/api/public/rss.xml'
+      fullPath: '/api/public/rss.xml'
+      preLoaderRoute: typeof ApiPublicRssDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminIdRoute: typeof AdminIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIdRoute: AdminIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  ArtigoSlugRoute: ArtigoSlugRoute,
+  BulasSlugRoute: BulasSlugRoute,
+  ApiPublicRssDotxmlRoute: ApiPublicRssDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
