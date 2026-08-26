@@ -143,26 +143,54 @@ function Index() {
             </p>
           )}
 
-          <ul className="flex flex-col gap-8">
+          <ul
+            className={cn(
+              isGrid
+                ? "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "flex flex-col gap-8",
+            )}
+          >
             {filteredArticles.map((article) => {
               const date = formatDateParts(article.published_at);
               return (
                 <li
                   key={article.id}
-                  className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-soft sm:flex-row sm:gap-6"
+                  className={cn(
+                    "rounded-xl border border-border bg-card shadow-soft",
+                    isGrid
+                      ? "flex h-full flex-col gap-3 p-5"
+                      : "flex flex-col gap-4 p-6 sm:flex-row sm:gap-6",
+                  )}
                 >
-                  <div className="flex w-16 shrink-0 flex-col items-center rounded-lg bg-secondary px-2 py-3 text-center">
+                  <div
+                    className={cn(
+                      "flex shrink-0 rounded-lg bg-secondary text-center",
+                      isGrid
+                        ? "w-fit items-baseline gap-1.5 px-3 py-1.5"
+                        : "w-16 flex-col items-center px-2 py-3",
+                    )}
+                  >
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       {date.month}
                     </span>
-                    <span className="text-2xl font-semibold leading-tight text-foreground">
+                    <span
+                      className={cn(
+                        "font-semibold leading-tight text-foreground",
+                        isGrid ? "text-sm" : "text-2xl",
+                      )}
+                    >
                       {date.day}
                     </span>
                     <span className="text-[10px] text-muted-foreground">{date.year}</span>
                   </div>
 
-                  <div className="min-w-0">
-                    <h2 className="text-xl font-semibold leading-snug">
+                  <div className={cn("min-w-0", isGrid && "flex flex-1 flex-col")}>
+                    <h2
+                      className={cn(
+                        "font-semibold leading-snug",
+                        isGrid ? "text-base" : "text-xl",
+                      )}
+                    >
                       <Link
                         to="/bulas/$slug"
                         params={{ slug: article.slug }}
@@ -179,13 +207,21 @@ function Index() {
                       ))}
                       {article.author_name && <span>por {article.author_name}</span>}
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    <p
+                      className={cn(
+                        "mt-3 text-sm leading-relaxed text-muted-foreground",
+                        isGrid && "line-clamp-4",
+                      )}
+                    >
                       {article.excerpt}
                     </p>
                     <Link
                       to="/bulas/$slug"
                       params={{ slug: article.slug }}
-                      className="mt-4 inline-flex text-sm font-medium text-brand hover:underline"
+                      className={cn(
+                        "inline-flex text-sm font-medium text-brand hover:underline",
+                        isGrid ? "mt-auto pt-4" : "mt-4",
+                      )}
                     >
                       Continue lendo →
                     </Link>
