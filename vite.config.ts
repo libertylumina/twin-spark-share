@@ -12,4 +12,18 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    optimizeDeps: {
+      include: [
+        "@tiptap/react",
+        "@tiptap/core",
+        "@tiptap/pm/state",
+        "@tiptap/pm/view",
+        "@tiptap/pm/model",
+        "@tiptap/starter-kit",
+        "@tiptap/extension-link",
+        "@tiptap/extension-underline",
+      ],
+    },
+  },
 });
