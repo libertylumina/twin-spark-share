@@ -18,11 +18,16 @@ export type Database = {
         Row: {
           author_name: string
           content: string
+          cover_image_url: string
           created_at: string
           excerpt: string
           id: string
           published: boolean
           published_at: string
+          share_facebook: string
+          share_linkedin: string
+          share_twitter: string
+          share_whatsapp: string
           slug: string
           tags: string[]
           title: string
@@ -31,11 +36,16 @@ export type Database = {
         Insert: {
           author_name?: string
           content?: string
+          cover_image_url?: string
           created_at?: string
           excerpt?: string
           id?: string
           published?: boolean
           published_at?: string
+          share_facebook?: string
+          share_linkedin?: string
+          share_twitter?: string
+          share_whatsapp?: string
           slug: string
           tags?: string[]
           title: string
@@ -44,11 +54,16 @@ export type Database = {
         Update: {
           author_name?: string
           content?: string
+          cover_image_url?: string
           created_at?: string
           excerpt?: string
           id?: string
           published?: boolean
           published_at?: string
+          share_facebook?: string
+          share_linkedin?: string
+          share_twitter?: string
+          share_whatsapp?: string
           slug?: string
           tags?: string[]
           title?: string
