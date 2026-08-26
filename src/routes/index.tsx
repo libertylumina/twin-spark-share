@@ -2,16 +2,19 @@ import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack
 import { useQuery } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Search, X } from "lucide-react";
+import { Search, X, Rows3, LayoutGrid } from "lucide-react";
 
 import { formatDateParts, publishedArticlesQuery } from "@/lib/articles";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const homeSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
+  view: fallback(z.enum(["lista", "grade"]), "lista").default("lista"),
 });
 
-const searchDefaults = { q: "" };
+const searchDefaults = { q: "", view: "lista" as const };
+
 
 export const Route = createFileRoute("/")({
   validateSearch: zodValidator(homeSearchSchema),
@@ -39,7 +42,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { data: articles, isLoading, error } = useQuery(publishedArticlesQuery);
-  const { q } = Route.useSearch();
+  const { q, view } = Route.useSearch();
+  const isGrid = view === "grade";
   const navigate = useNavigate({ from: "/" });
 
   const filteredArticles = (articles ?? []).filter((article) => {
@@ -66,26 +70,59 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
+      <section className={cn("mx-auto px-4 sm:px-6 py-10", isGrid ? "max-w-7xl" : "max-w-4xl")}>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar bula por título, resumo ou autor"
-              value={q}
-              onChange={(e) => navigate({ search: (prev) => ({ ...prev, q: e.target.value }) })}
-              className="h-12 rounded-xl pl-10 pr-10 text-base"
-            />
-            {q && (
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar bula por título, resumo ou autor"
+                value={q}
+                onChange={(e) => navigate({ search: (prev) => ({ ...prev, q: e.target.value }) })}
+                className="h-12 rounded-xl pl-10 pr-10 text-base"
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => navigate({ search: (prev) => ({ ...prev, q: "" }) })}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-secondary p-1">
               <button
                 type="button"
-                onClick={() => navigate({ search: (prev) => ({ ...prev, q: "" }) })}
-                aria-label="Limpar busca"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Visualização em lista"
+                aria-pressed={!isGrid}
+                onClick={() => navigate({ search: (prev) => ({ ...prev, view: "lista" as const }) })}
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-lg transition-colors",
+                  !isGrid
+                    ? "bg-card text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
-                <X className="h-4 w-4" />
+                <Rows3 className="h-4 w-4" />
               </button>
-            )}
+              <button
+                type="button"
+                aria-label="Visualização em 4 colunas"
+                aria-pressed={isGrid}
+                onClick={() => navigate({ search: (prev) => ({ ...prev, view: "grade" as const }) })}
+                className={cn(
+                  "grid h-10 w-10 place-items-center rounded-lg transition-colors",
+                  isGrid
+                    ? "bg-card text-foreground shadow-soft"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -106,26 +143,54 @@ function Index() {
             </p>
           )}
 
-          <ul className="flex flex-col gap-8">
+          <ul
+            className={cn(
+              isGrid
+                ? "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "flex flex-col gap-8",
+            )}
+          >
             {filteredArticles.map((article) => {
               const date = formatDateParts(article.published_at);
               return (
                 <li
                   key={article.id}
-                  className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-soft sm:flex-row sm:gap-6"
+                  className={cn(
+                    "rounded-xl border border-border bg-card shadow-soft",
+                    isGrid
+                      ? "flex h-full flex-col gap-3 p-5"
+                      : "flex flex-col gap-4 p-6 sm:flex-row sm:gap-6",
+                  )}
                 >
-                  <div className="flex w-16 shrink-0 flex-col items-center rounded-lg bg-secondary px-2 py-3 text-center">
+                  <div
+                    className={cn(
+                      "flex shrink-0 rounded-lg bg-secondary text-center",
+                      isGrid
+                        ? "w-fit items-baseline gap-1.5 px-3 py-1.5"
+                        : "w-16 flex-col items-center px-2 py-3",
+                    )}
+                  >
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       {date.month}
                     </span>
-                    <span className="text-2xl font-semibold leading-tight text-foreground">
+                    <span
+                      className={cn(
+                        "font-semibold leading-tight text-foreground",
+                        isGrid ? "text-sm" : "text-2xl",
+                      )}
+                    >
                       {date.day}
                     </span>
                     <span className="text-[10px] text-muted-foreground">{date.year}</span>
                   </div>
 
-                  <div className="min-w-0">
-                    <h2 className="text-xl font-semibold leading-snug">
+                  <div className={cn("min-w-0", isGrid && "flex flex-1 flex-col")}>
+                    <h2
+                      className={cn(
+                        "font-semibold leading-snug",
+                        isGrid ? "text-base" : "text-xl",
+                      )}
+                    >
                       <Link
                         to="/bulas/$slug"
                         params={{ slug: article.slug }}
@@ -142,13 +207,21 @@ function Index() {
                       ))}
                       {article.author_name && <span>por {article.author_name}</span>}
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    <p
+                      className={cn(
+                        "mt-3 text-sm leading-relaxed text-muted-foreground",
+                        isGrid && "line-clamp-4",
+                      )}
+                    >
                       {article.excerpt}
                     </p>
                     <Link
                       to="/bulas/$slug"
                       params={{ slug: article.slug }}
-                      className="mt-4 inline-flex text-sm font-medium text-brand hover:underline"
+                      className={cn(
+                        "inline-flex text-sm font-medium text-brand hover:underline",
+                        isGrid ? "mt-auto pt-4" : "mt-4",
+                      )}
                     >
                       Continue lendo →
                     </Link>
