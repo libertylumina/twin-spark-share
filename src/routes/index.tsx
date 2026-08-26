@@ -42,7 +42,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { data: articles, isLoading, error } = useQuery(publishedArticlesQuery);
-  const { q } = Route.useSearch();
+  const { q, view } = Route.useSearch();
+  const isGrid = view === "grade";
   const navigate = useNavigate({ from: "/" });
 
   const filteredArticles = (articles ?? []).filter((article) => {
