@@ -17,25 +17,33 @@ export async function fetchBackupArticles(): Promise<Article[]> {
   }
 }
 
+function csvCell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+  return /[",;\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function articlesToCsv(articles: Article[]): string {
+  const columns = Array.from(
+    articles.reduce((set, a) => {
+      Object.keys(a as Record<string, unknown>).forEach((k) => set.add(k));
+      return set;
+    }, new Set<string>()),
+  );
+  const rows = articles.map((a) =>
+    columns.map((c) => csvCell((a as Record<string, unknown>)[c])).join(","),
+  );
+  return [columns.join(","), ...rows].join("\r\n");
+}
+
 export async function downloadArticleBackup() {
   const articles = await fetchBackupArticles();
   const createdAt = new Date().toISOString();
-  const backup = {
-    format: "central-de-bulas-articles",
-    version: 1,
-    created_at: createdAt,
-    scope: "articles",
-    includes_storage_files: false,
-    includes_user_accounts: false,
-    article_count: articles.length,
-    articles,
-  };
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8" }),
-  );
+  const csv = "\uFEFF" + articlesToCsv(articles);
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = `backup-postagens-${createdAt.replace(/[:.]/g, "-")}.json`;
+  link.download = `backup-postagens-${createdAt.replace(/[:.]/g, "-")}.csv`;
   document.body.appendChild(link);
   link.click();
   link.remove();
