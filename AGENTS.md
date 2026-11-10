@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the admin article backup client-side using authenticated, paginated article reads; this preserves RLS and avoids presenting a content export as a full database or storage backup.

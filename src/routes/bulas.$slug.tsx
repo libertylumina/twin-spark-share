@@ -19,6 +19,11 @@ export const Route = createFileRoute("/bulas/$slug")({
       return {
         meta: [
           { title: `Artigo não encontrado — ${SITE}` },
+          { name: "description", content: "Esta publicação não está disponível na Central de Bulas." },
+          { property: "og:title", content: `Artigo não encontrado — ${SITE}` },
+          { property: "og:description", content: "Esta publicação não está disponível na Central de Bulas." },
+          { property: "og:type", content: "article" },
+          { name: "twitter:card", content: "summary" },
           { name: "robots", content: "noindex" },
         ],
       };
@@ -64,7 +69,7 @@ function ArticleMissing() {
       <p className="mt-2 text-sm text-muted-foreground">
         Esta publicação não existe ou não está publicada.
       </p>
-      <Link to="/" className="mt-6 inline-flex text-sm font-medium text-brand hover:underline">
+      <Link to="/" search={{ q: "", view: "lista" }} className="mt-6 inline-flex text-sm font-medium text-brand hover:underline">
         ← Voltar para as publicações
       </Link>
     </div>
@@ -79,7 +84,7 @@ function ArticlePage() {
 
   return (
     <article className="mx-auto max-w-3xl px-4 sm:px-6 py-14">
-      <Link to="/" className="text-sm font-medium text-brand hover:underline">
+      <Link to="/" search={{ q: "", view: "lista" }} className="text-sm font-medium text-brand hover:underline">
         ← Todas as atualizações
       </Link>
 

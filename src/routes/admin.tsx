@@ -1,20 +1,24 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Download, LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { downloadArticleBackup } from "@/lib/article-backup";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Painel administrativo" },
+      { title: "Painel administrativo — Central de Bulas" },
       { name: "description", content: "Crie, edite e publique as postagens do blog." },
-      { property: "og:title", content: "Painel administrativo" },
+      { property: "og:title", content: "Painel administrativo — Central de Bulas" },
       { property: "og:description", content: "Gerencie as postagens publicadas no blog." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -23,6 +27,20 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
   const { user, isAdmin, loading } = useAuth();
+  const [backingUp, setBackingUp] = useState(false);
+
+  const backup = async () => {
+    if (backingUp) return;
+    setBackingUp(true);
+    try {
+      const count = await downloadArticleBackup();
+      toast.success(`Backup de ${count} postagem(ns) baixado. Não inclui contas ou arquivos de imagens.`);
+    } catch {
+      toast.error("Não foi possível baixar o backup. Tente novamente.");
+    } finally {
+      setBackingUp(false);
+    }
+  };
 
   if (loading) {
     return <div className="mx-auto max-w-5xl px-6 py-16 text-sm text-muted-foreground">Carregando…</div>;
@@ -53,6 +71,16 @@ function AdminLayout() {
           </Link>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="hidden sm:inline">{user.email}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void backup()}
+              disabled={backingUp}
+              title="Baixar todas as postagens em JSON, sem contas ou arquivos de imagens"
+            >
+              {backingUp ? <LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <Download className="h-4 w-4" />}
+              {backingUp ? "Baixando…" : "Backup das postagens"}
+            </Button>
             <Button size="sm" variant="outline" onClick={() => void supabase.auth.signOut()}>
               Sair
             </Button>

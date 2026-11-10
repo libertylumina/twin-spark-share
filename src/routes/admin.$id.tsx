@@ -22,6 +22,16 @@ import {
 } from "@/lib/articles";
 
 export const Route = createFileRoute("/admin/$id")({
+  head: () => ({
+    meta: [
+      { title: "Editor de postagem — Central de Bulas" },
+      { name: "description", content: "Edite o conteúdo e a publicação das bulas." },
+      { property: "og:title", content: "Editor de postagem — Central de Bulas" },
+      { property: "og:description", content: "Edite o conteúdo e a publicação das bulas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminEditor,
 });
 

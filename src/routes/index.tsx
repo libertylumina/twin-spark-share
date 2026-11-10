@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { Search, X, Rows3, LayoutGrid } from "lucide-react";
 
@@ -9,15 +8,15 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const homeSearchSchema = z.object({
-  q: fallback(z.string(), "").default(""),
-  view: fallback(z.enum(["lista", "grade"]), "lista").default("lista"),
+  q: z.string().catch("").default(""),
+  view: z.enum(["lista", "grade"]).catch("lista").default("lista"),
 });
 
 const searchDefaults = { q: "", view: "lista" as const };
 
 
 export const Route = createFileRoute("/")({
-  validateSearch: zodValidator(homeSearchSchema),
+  validateSearch: (search: Record<string, unknown>) => homeSearchSchema.parse(search),
   search: {
     middlewares: [stripSearchParams(searchDefaults)],
   },
@@ -30,6 +29,8 @@ export const Route = createFileRoute("/")({
           "Aqui publicamos todas as bulas dos nossos produtos. Fique atento a alterações e correções.",
       },
       { property: "og:title", content: "Central de Bulas — Atualização de documentos" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Aqui publicamos todas as bulas dos nossos produtos. Fique atento a alterações e correções.",

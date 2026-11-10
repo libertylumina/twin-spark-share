@@ -38,6 +38,16 @@ type AdminSearch = {
 };
 
 export const Route = createFileRoute("/admin/")({
+  head: () => ({
+    meta: [
+      { title: "Postagens — Central de Bulas" },
+      { name: "description", content: "Gerencie e exporte as postagens da Central de Bulas." },
+      { property: "og:title", content: "Postagens — Central de Bulas" },
+      { property: "og:description", content: "Gerencie e exporte as postagens da Central de Bulas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>): AdminSearch => {
     const rawStatus = search["status"];
     const rawQ = search["q"];
