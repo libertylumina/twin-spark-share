@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep the admin article backup client-side using authenticated, paginated article reads; this preserves RLS and avoids presenting a content export as a full database or storage backup.
+- Apply admin pagination after filtering through the shared pagination helper and keep the selected page in URL search state; this keeps filters consistent and preserves the page on reload.

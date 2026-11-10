@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { paginateItems } from "@/lib/pagination";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ function normalize(value: string) {
 }
 
 type AdminSearch = {
+  pagina?: number | undefined;
   q?: string | undefined;
   autor?: string | undefined;
   status?: Status | undefined;
@@ -52,7 +54,9 @@ export const Route = createFileRoute("/admin/")({
     const rawStatus = search["status"];
     const rawQ = search["q"];
     const rawAutor = search["autor"];
+    const rawPage = Number(search["pagina"]);
     return {
+      pagina: Number.isSafeInteger(rawPage) && rawPage > 1 ? rawPage : undefined,
       q: typeof rawQ === "string" && rawQ ? rawQ : undefined,
       autor: typeof rawAutor === "string" && rawAutor ? rawAutor : undefined,
       status:
@@ -90,11 +94,12 @@ function AdminList() {
   });
 
   const hasFilters = Boolean(term) || Boolean(autor) || status !== "todos";
+  const pagination = paginateItems(filtered, search.pagina ?? 1);
 
   const setSearch = (patch: AdminSearch) =>
     navigate({
       search: (prev) => {
-        const next = { ...prev, ...patch };
+        const next = { ...prev, ...patch, pagina: undefined };
         return {
           q: next.q || undefined,
           autor: next.autor || undefined,
@@ -103,6 +108,12 @@ function AdminList() {
       },
       replace: true,
     });
+
+  const changePage = (pagina: number) => {
+    void navigate({
+      search: (prev) => ({ ...prev, pagina: pagina > 1 ? pagina : undefined }),
+    });
+  };
 
   const remove = useMutation({
     mutationFn: deleteArticle,
@@ -211,7 +222,7 @@ function AdminList() {
       )}
 
       <ul className="mt-6 flex flex-col gap-3">
-        {filtered.map((article) => {
+        {pagination.items.map((article) => {
           const itemStatus = articleStatus(article);
           return (
           <li
@@ -271,6 +282,36 @@ function AdminList() {
           );
         })}
       </ul>
+      {filtered.length > 0 && (
+        <nav aria-label="Paginação das postagens" className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {pagination.start}–{pagination.end} de {filtered.length} postagens
+          </p>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Página anterior"
+              title="Página anterior"
+              disabled={pagination.page === 1}
+              onClick={() => changePage(pagination.page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm tabular-nums">Página {pagination.page} de {pagination.totalPages}</span>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Próxima página"
+              title="Próxima página"
+              disabled={pagination.page === pagination.totalPages}
+              onClick={() => changePage(pagination.page + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
